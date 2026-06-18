@@ -11,14 +11,17 @@ from typing import Any
 
 
 def _pct(x: float) -> str:
+    """Show a 0–1 fraction as a friendly percentage like "86.0%"."""
     return f"{x * 100:.1f}%"
 
 
 def _fmt(x: float) -> str:
+    """Show a float to three decimals — used for kappa and F1 values."""
     return f"{x:.3f}"
 
 
 def _stats_row(label: str, s: dict[str, Any]) -> str:
+    """Lay out one rater's agreement numbers as a single markdown table row."""
     return (
         f"| {label} | {_fmt(s['cohen_kappa'])} | {_pct(s['accuracy'])} | "
         f"{_pct(s['precision'])} | {_pct(s['recall'])} | {_fmt(s['f1'])} |"
@@ -26,6 +29,12 @@ def _stats_row(label: str, s: dict[str, Any]) -> str:
 
 
 def render_report(results: dict) -> str:
+    """Turn the combined results dict into the full markdown report.
+
+    Builds the page section by section — metadata, leaderboard, calibration, the "where exact match
+    lies" examples, and the judge-pitfalls note — including each section only when its data is present,
+    so a partial run still produces a sensible report.
+    """
     meta = results.get("meta", {})
     lines: list[str] = []
     lines.append("# Yardstick evaluation report")
@@ -107,9 +116,11 @@ def render_report(results: dict) -> str:
 
 
 def _truncate(text: str, width: int) -> str:
+    """Squeeze text down to fit a table cell, adding an ellipsis if it had to be cut."""
     text = " ".join(text.split())
     return text if len(text) <= width else text[: width - 1] + "…"
 
 
 def _tick(value: bool) -> str:
+    """Render a yes/no verdict as a green check or red cross for the report tables."""
     return "✅" if value else "❌"

@@ -53,7 +53,11 @@ def build_messages(question: str, reference: str, candidate: str) -> list[dict[s
 
 
 def judge_answer(client, question: str, reference: str, candidate: str) -> dict:
-    """Return {correct: bool, reason: str}."""
+    """Ask the given LLM client to grade one answer and hand back its verdict as {correct, reason}.
+
+    Whatever the backend (Anthropic, OpenAI, or the offline heuristic), the result is normalized into a
+    plain dict so the rest of the harness never has to care which judge produced it.
+    """
     result = client.complete(build_messages(question, reference, candidate), JUDGE_SCHEMA)
     if not isinstance(result, dict):
         raise RuntimeError("Judge backend did not return a structured verdict")

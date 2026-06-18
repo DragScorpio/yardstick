@@ -31,10 +31,12 @@ RESULTS_DIR = "results"
 
 
 def _client_label(client: LLMClient) -> str:
+    """A short, human label for whichever backend is live, e.g. "OfflineClient:offline-deterministic"."""
     return f"{type(client).__name__}:{getattr(client, 'model', 'unknown')}"
 
 
 def _answer_messages(question: str) -> list[dict[str, str]]:
+    """Build the chat prompt that asks a model to answer one question as briefly as possible."""
     return [
         {
             "role": "system",
@@ -45,11 +47,13 @@ def _answer_messages(question: str) -> list[dict[str, str]]:
 
 
 def _write_json(path: Path, obj: Any) -> None:
+    """Write an object to a pretty-printed JSON file, creating parent folders if they're missing."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def _timestamp() -> str:
+    """The current local time as a readable ISO-ish stamp for the report header."""
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 
 
@@ -57,6 +61,7 @@ def _timestamp() -> str:
 
 
 def cmd_prepare(args: argparse.Namespace) -> int:
+    """`prepare`: download and slice SQuAD, then emit a blank golden-label template to hand-fill."""
     summary = data_mod.prepare(out_dir=args.out, n=args.n)
     print(
         f"Prepared {summary['sliced']} items from {summary['dataset']} "
@@ -69,6 +74,7 @@ def cmd_prepare(args: argparse.Namespace) -> int:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
+    """`run`: ask the selected model to answer every question in the slice (responses are cached)."""
     client = get_llm_client()
     rows = data_mod.load_slice(args.slice)
     if args.limit:
@@ -87,6 +93,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def cmd_score(args: argparse.Namespace) -> int:
+    """`score`: grade every model answer with exact match, token-F1, and the judge; write the leaderboard."""
     client = get_llm_client()
     rows = data_mod.load_slice(args.run)  # run.jsonl is jsonl too
     scored = []
@@ -132,6 +139,9 @@ def cmd_score(args: argparse.Namespace) -> int:
 
 
 def cmd_calibrate(args: argparse.Namespace) -> int:
+    """`calibrate`: re-grade the hand-labeled gold with EM and the judge, then measure how closely each
+    one agrees with the human labels (accuracy, precision/recall, Cohen's kappa) and collect the cases
+    where exact match wrongly rejects a correct paraphrase."""
     from .calibrate import em_vs_golden, judge_vs_golden
 
     client = get_llm_client()
@@ -194,6 +204,7 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
 
 
 def cmd_report(args: argparse.Namespace) -> int:
+    """`report`: stitch the leaderboard and calibration JSON into the markdown report and a combined snapshot."""
     leaderboard_path = Path(RESULTS_DIR) / "leaderboard.json"
     calibration_path = Path(RESULTS_DIR) / "calibration.json"
     leaderboard = (
@@ -234,6 +245,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Wire up the five subcommands (prepare/run/score/calibrate/report) and their flags."""
     p = argparse.ArgumentParser(prog="yardstick", description="Calibrated LLM evaluation")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -270,6 +282,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI entry point: parse the arguments and dispatch to the chosen subcommand."""
     args = build_parser().parse_args(argv)
     return args.func(args)
 

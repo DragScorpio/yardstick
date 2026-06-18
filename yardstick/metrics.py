@@ -24,12 +24,12 @@ def normalize(text: str) -> str:
 
 
 def exact_match(prediction: str, reference: str) -> bool:
-    """True if normalized prediction == normalized reference."""
+    """The strict, unforgiving check: True only when the two answers are identical once cleaned up."""
     return normalize(prediction) == normalize(reference)
 
 
 def token_f1(prediction: str, reference: str) -> float:
-    """Token-overlap F1 between normalized prediction and reference (partial credit)."""
+    """How much the two answers' words overlap, 0–1 — partial credit, so near-misses aren't all-or-nothing."""
     pred_tokens = normalize(prediction).split()
     ref_tokens = normalize(reference).split()
     # Two empties agree perfectly; one empty against a non-empty has zero overlap.

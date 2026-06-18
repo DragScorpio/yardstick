@@ -44,6 +44,7 @@ class LLMClient(Protocol):
 
 
 def _cache_key(provider: str, model: str, messages: list[dict], schema: dict | None) -> str:
+    """Hash the whole request into one stable filename, so identical calls reuse the same cached answer."""
     blob = json.dumps(
         {"provider": provider, "model": model, "messages": messages, "schema": schema},
         sort_keys=True,
@@ -92,6 +93,7 @@ def _extract_payload(messages: list[dict[str, str]]) -> dict:
 
 
 def _is_judge_schema(schema: dict | None) -> bool:
+    """True when the caller is asking for a judge verdict (the schema has a "correct" field)."""
     return bool(schema) and "correct" in schema.get("properties", {})
 
 
@@ -108,6 +110,8 @@ class AnthropicAdapter:
         self.cache_dir = cache_dir
 
     def complete(self, messages, schema=None):
+        """Send the messages to Anthropic and return the structured verdict (or plain text); cached on disk."""
+
         def call() -> dict | str:
             import anthropic  # imported only inside the adapter
 
@@ -147,6 +151,8 @@ class OpenAIAdapter:
         self.cache_dir = cache_dir
 
     def complete(self, messages, schema=None):
+        """Send the messages to OpenAI and return the structured verdict (or plain text); cached on disk."""
+
         def call() -> dict | str:
             import openai  # imported only inside the adapter
 
@@ -170,12 +176,14 @@ class OfflineClient:
     model = "offline-deterministic"
 
     def complete(self, messages, schema=None):
+        """Route to the offline judge when a verdict is asked for, otherwise to the knowledge-free answerer."""
         if _is_judge_schema(schema):
             return self._judge(messages)
         return self._answer(messages)
 
     @staticmethod
     def _judge(messages: list[dict[str, str]]) -> dict:
+        """Grade an answer offline by its token-F1 overlap with the reference (a real heuristic, threshold 0.5)."""
         payload = _extract_payload(messages)
         reference = str(payload.get("reference", ""))
         candidate = str(payload.get("candidate", ""))
@@ -191,6 +199,7 @@ class OfflineClient:
 
     @staticmethod
     def _answer(messages: list[dict[str, str]]) -> str:
+        """The offline answerer has no knowledge, so it honestly says "I don't know"."""
         # Knowledge-free: the offline answerer sees only the question, so it cannot really answer.
         # Honest by design — an offline leaderboard is weak, and that is the point of needing a key.
         return "I don't know."

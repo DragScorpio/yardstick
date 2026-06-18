@@ -117,6 +117,7 @@ def load_slice(path: str = "data/slice.jsonl") -> list[dict[str, str]]:
 
 
 def _parse_bool(value: str) -> bool:
+    """Read a human-written label ("correct", "yes", "true", ...) as a boolean."""
     return str(value).strip().lower() in {"1", "true", "yes", "y", "correct", "t"}
 
 
