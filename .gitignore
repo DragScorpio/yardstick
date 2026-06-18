@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets / local config
+.env
+*.local.*
+
+# Dataset bulk is NOT committed; the small hand-labeled golden file IS.
+data/*
+!data/README.md
+!data/golden_labels.csv
+
+# Run outputs
+results/*
+!results/.gitkeep
