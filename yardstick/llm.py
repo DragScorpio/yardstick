@@ -1,6 +1,6 @@
-"""Provider-agnostic LLM interface (same pattern as Sift, on purpose).
+"""Provider-agnostic LLM interface.
 
-Rule (initiative-wide): never import a vendor SDK outside its adapter. Choose the backend with
+Rule: never import a vendor SDK outside its adapter. Choose the backend with
 ``YARDSTICK_LLM_PROVIDER`` ("anthropic" | "openai" | "offline"); the default ``auto`` uses Anthropic if
 ``ANTHROPIC_API_KEY`` is set, else OpenAI if ``OPENAI_API_KEY`` is set, else the deterministic
 :class:`OfflineClient`. When a schema is passed, an adapter returns a dict conforming to it; otherwise it

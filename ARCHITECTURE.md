@@ -136,10 +136,10 @@ stub that peeks at the answer:
 Swap in `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) and the real LLM judge replaces the heuristic behind the
 exact same `LLMClient` interface; the harness then calibrates *that* judge instead. Nothing else changes.
 
-## 8. Key design decisions (and where to read more)
+## 8. Key design decisions
 
 - **Cohen's kappa is hand-rolled** (~10 lines in `metrics.py`), not pulled from scikit-learn — more
-  teachable, fewer deps. The blueprint's Decisions log records this.
+  teachable, fewer deps.
 - **The golden CSV is self-contained**: each human label is pinned to the exact candidate text it judged
   (`id,question,reference,candidate,golden_correct`). That dissolves the chicken-and-egg between `run` and
   the gold, so `calibrate` reproduces without re-running any model.

@@ -5,9 +5,6 @@ model answers two ways — a strict deterministic metric and an LLM-as-judge —
 demos skip: it **calibrates the judge against hand-labeled ground truth** and shows exactly where the
 cheap string match lies to you.
 
-> See [`../blueprints/02-yardstick.md`](../blueprints/02-yardstick.md) for the full spec and
-> [`../PORTFOLIO.md`](../PORTFOLIO.md) for the initiative rules.
-
 ## The headline (v0.1, on 50 hand-labeled SQuAD answers)
 
 | Rater | Cohen's κ vs human gold | Accuracy | Precision | Recall |
@@ -22,6 +19,17 @@ human labels more than twice as closely (κ 0.71 vs 0.32). **That gap, measured 
 product.** And because we measured it, we can also see where the judge itself is wrong (3 false accepts on
 shuffled/reversed facts, 4 misses on numeral/synonym paraphrases) — which is the whole reason you calibrate
 before you trust a judge.
+
+## What it looks like
+
+The whole pipeline runs end to end with the offline backend, so it reproduces with no API key:
+
+![The full Yardstick pipeline running in the terminal](assets/pipeline-console.png)
+
+The calibration report it generates — the judge-vs-gold agreement table and the "where exact match lies"
+examples:
+
+![Yardstick's calibration report](assets/calibration-report.png)
 
 ## Why it's not a prompt wrapper
 
@@ -79,7 +87,8 @@ yardstick/
   calibrate.py  # judge-vs-gold & EM-vs-gold agreement stats
   report.py     # markdown report
 data/           # gitignored bulk; data/README.md + data/golden_labels.csv are committed
-results/        # versioned run outputs (gitignored; report.md, latest.json, ...)
+results/        # run outputs (gitignored; report.md, latest.json, ...)
+assets/         # committed screenshots used in this README
 tests/          # 29 tests; ruff + black clean
 ```
 
